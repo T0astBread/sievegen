@@ -1,0 +1,127 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -p python3 -i python3
+
+"""sg-newalias generates and adds new email aliases."""
+
+import json
+import os
+import random
+import sys
+from typing import List
+
+
+LETTERS = "abcdefghijklmnopqrstuvwxyz"
+
+
+wordlist_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "wordlists"
+)
+
+
+def load_wordlist(name: str) -> List[str]:
+    """
+    load_wordlist loads the entries of an available wordlist with the
+    given name and returns them.
+    """
+    with open(os.path.join(wordlist_dir, f"{name}.txt"), encoding="utf-8") as list_file:
+        return list_file.readlines()
+
+
+adjectives = load_wordlist("en_adjectives")
+first_names = load_wordlist("first_names")
+names = load_wordlist("names")
+nouns = load_wordlist("en_nouns")
+
+
+def random_letter() -> str:
+    """
+    random_letter returns a random lowercase letter from the English
+    alphabet.
+    """
+    return random.choice(LETTERS)
+
+
+def random_number() -> str:
+    """random_number returns a random number between 0 and 99."""
+    return random.randint(0, 99).__str__()
+
+
+def random_word(wordlist: List[str]) -> str:
+    """random_word returns a random word from the provided word list."""
+    return random.choice(wordlist).strip().lower()
+
+
+def generate_address_localpart() -> str:
+    """
+    generate_address_localpart generates a random localpart for an
+    email address.
+
+    Generated localparts follow one of several patterns.
+    """
+
+    pattern = random.randint(1, 7)
+    if pattern == 1:
+        return random_word(adjectives) + "." + random_word(nouns)
+    if pattern == 2:
+        return random_word(adjectives) + random_word(nouns) + random_number()
+    if pattern == 3:
+        return random_letter() + random_word(names)
+    if pattern == 4:
+        return random_letter() + random_word(names) + random_number()
+    if pattern == 5:
+        return random_word(first_names) + "." + random_word(names)
+    if pattern == 6:
+        return (
+            random_word(first_names) + "." + random_word(names) + "." + random_number()
+        )
+    if pattern == 7:
+        return random_number() + random_word(nouns)
+
+    raise Exception("unreachable")
+
+
+def main():
+    """main is the main function of the script."""
+
+    config_file = os.environ["CONFIG_FILE"]
+    config = None  # pylint: disable=invalid-name  # This is not a constant.
+    with open(config_file, encoding="utf-8") as f:
+        config = json.load(f)
+
+    aliases_file = config["aliases_file"]
+    aliases = None  # pylint: disable=invalid-name  # This is not a contsant.
+    with open(aliases_file, encoding="utf-8") as f:
+        aliases = json.load(f)
+
+    localpart_suggestions = []
+    for i in range(10):
+        suggestion = generate_address_localpart()
+        localpart_suggestions.append(suggestion)
+        print(i, suggestion)
+
+    selection_index = int(input("\nWhat's gonna be your new alias? "))
+    localpart = localpart_suggestions[selection_index]
+
+    description = input("\nDescription: ")
+
+    print()
+    print(" ", f'{localpart}@{config["domain"]}')
+    print(" ", description)
+
+    confirmation = input("\nIs that okay? [Y/n] ")
+    if not confirmation in ["", "Y", "y"]:
+        sys.exit(1)
+
+    aliases.append(
+        {
+            "localpart": localpart,
+            "description": description,
+        }
+    )
+
+    with open(aliases_file, "w", encoding="utf-8") as f:
+        json.dump(aliases, f, indent=True)
+
+
+if __name__ == "__main__":
+    main()

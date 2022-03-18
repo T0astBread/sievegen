@@ -1,0 +1,11 @@
+{
+    "python.formatting.provider": "black",
+    "python.linting.banditArgs": [
+        "-c",
+        "bandit.yml"
+    ],
+    "python.linting.banditEnabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.testing.pytestEnabled": true,
+}

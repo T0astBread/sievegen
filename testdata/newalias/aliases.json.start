@@ -1,0 +1,10 @@
+[
+    {
+        "localpart": "foobar2000",
+        "description": "foobar account"
+    },
+    {
+        "localpart": "baz2001",
+        "description": "baz account"
+    }
+]

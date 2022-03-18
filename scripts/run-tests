@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euxo pipefail
+
+for test_case in testdata/generate-sieve/*; do
+    diff -u --color=always "$test_case/expected.sieve" <(CONFIG_FILE="$test_case/config.json" bin/sg-update --stdout)
+done
+
+cd testdata/newalias
+cp aliases.json.start aliases.json
+[[ "$(jq < aliases.json '. | length')" = 2 ]]
+cd -
+echo -e "0\nok boomer\n" | CONFIG_FILE=testdata/newalias/config.json bin/sg-newalias
+cd -
+[[ "$(jq < aliases.json '. | length')" = 3 ]]
+[[ "$(jq < aliases.json '.[2].localpart | length')" -gt 0 ]]
+[[ "$(jq --raw-output < aliases.json '.[2].description')" = "ok boomer" ]]
+rm aliases.json
+cd -
