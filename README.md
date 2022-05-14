@@ -27,7 +27,7 @@ these projects who were kind enough to share them:
   - `names`: https://github.com/dominictarr/random-name
 
 Also shoutouts to the [managesieve](https://gitlab.com/htgoebel/managesieve)
-library which is manages to manage ManageSieve.
+library which manages to manage ManageSieve.
 
 ## License
 
